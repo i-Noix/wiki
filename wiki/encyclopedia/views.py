@@ -7,8 +7,16 @@ import markdown2
 from . import util
 
 class NewPageForm(forms.Form):
-    title = forms.CharField(label="Title for the page")
-    textarea = forms.CharField(widget=forms.Textarea)
+    title = forms.CharField(
+        label="Title for the page", 
+        widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'style': 'width: 25%;'
+    }))
+    textarea = forms.CharField(label="Page Content", widget=forms.Textarea(attrs={
+        'class': 'form-control',
+        'style': 'height: 90vh; width: 80%;'
+    }))
 
 
 def index(request):
@@ -52,7 +60,21 @@ def error_page(request, title):
 
 # Реалізація функції щодо створення нової сторінки
 def new_page(request):
+    if request.method == "POST":
+        form = NewPageForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["textarea"]
+        if util.get_entry(title):
+            return render(request, "encyclopedia/new_page.html", {
+                "form": form,
+                "error": title
+            })
+        else:
+            util.save_entry(title, content)
+            return HttpResponseRedirect(reverse("entry_page", args=[title]))
     return render(request, "encyclopedia/new_page.html", {
         "form": NewPageForm()
     })
+
 
