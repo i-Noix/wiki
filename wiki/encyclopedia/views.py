@@ -18,6 +18,12 @@ class NewPageForm(forms.Form):
         'style': 'height: 90vh; width: 80%;'
     }))
 
+class EditPageForm(forms.Form):
+    textarea = forms.CharField(label="Page Content", widget=forms.Textarea(attrs={
+        'class': 'form-control',
+        'style': 'height: 90vh; width: 80%;'
+    }))
+
 
 def index(request):
     # Реалізація поля пошуку та переходу на сторінку статті чи виведення списку назв статтей, які збігаються з введеним текстом у пошуку
@@ -43,6 +49,10 @@ def index(request):
 
 # Реалізація переходу на сторінку статті
 def entry_page(request, title):
+    # Сценарій у випадку, коли користувач натискає edit_this_page
+    if request.method == "POST":
+        return HttpResponseRedirect(reverse("edit_page", args=[title]))
+   
     page_exist = util.get_entry(title)
     if page_exist:
         return render(request, "encyclopedia/title.html", {
@@ -77,4 +87,20 @@ def new_page(request):
         "form": NewPageForm()
     })
 
+# Реалізація функції щодо редагування сторінки
+def edit_page(request, title):
+    if request.method == "POST":
+        form = EditPageForm(request.POST)
+        if form.is_valid():
+            new_content = form.cleaned_data["textarea"]
+            util.save_entry(title, new_content)
+            return HttpResponseRedirect(reverse("entry_page", args=[title]))
+
+    edit_entry = util.get_entry(title)
+    form = EditPageForm(initial={'textarea': edit_entry})
+    return render(request, "encyclopedia/edit_page.html", {
+        "title": title,
+        "content": edit_entry,
+        "form": form
+    })
 
