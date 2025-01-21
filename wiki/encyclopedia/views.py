@@ -3,6 +3,7 @@ from django.urls import reverse
 from django import forms
 from django.shortcuts import render
 import markdown2
+import random
 
 from . import util
 
@@ -103,4 +104,10 @@ def edit_page(request, title):
         "content": edit_entry,
         "form": form
     })
+
+# Реалізація функції рандомної сторінки
+def random_page(request):
+    entrys = util.list_entries()
+    print(entrys)
+    return HttpResponseRedirect(reverse("entry_page", args=[random.choice(entrys)]))
 
